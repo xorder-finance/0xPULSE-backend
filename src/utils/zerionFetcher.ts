@@ -1,4 +1,5 @@
 import { client } from "defi-sdk";
+import { calcProfitForPeriodInTx } from "./additionalFunctions";
 
 // export const endpoint = "wss://api-staging.zerion.io";
 // export const API_TOKEN = "Zerion.0JOY6zZTTw6yl5Cvz9sdmXc7d5AhzVMG";
@@ -75,6 +76,16 @@ export const getChartsInfo = (address: string) => {
 			}
 		});
 	});
+}
+
+export const getProfitsInfo = async (address: string, txStartOffset: number, txEndOffset: number) => {
+
+	let userAssets = await getAssetsOfUser(address);
+	let userTx = await getLastTransactions(address);
+
+	//let profit = caclProfitForPeriod(0, 1700000000, false, data2, data);
+	let profit: number = calcProfitForPeriodInTx(txStartOffset, txEndOffset, false, userTx, userAssets);
+	return profit;
 }
 
 // (async () => {
