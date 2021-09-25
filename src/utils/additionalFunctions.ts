@@ -271,3 +271,45 @@ export const calcProfitForPeriodInTx = function(_txStartOffset: number, _txEndOf
     }
     return profit;
 }
+
+function getProfitForTxPeriod(_txStartOffset: number, _txEndOffset: number, _includeFees: boolean) : any {
+    if (_txStartOffset > Snaps.length - 1) {
+        return "Not enough data";
+    }
+
+    let x: number = getAssetsPriceForTx(_txEndOffset);
+    let y: number = getAssetsPriceForTx(_txStartOffset);
+    if (y < 0) y = 0;
+    let a: number = getAssetsOutputForTx(_txStartOffset, _txEndOffset, _includeFees);
+    let b: number = getAssetsInputForTx(_txStartOffset, _txEndOffset);
+    let profit: number = 0;
+
+    if (x < 0 || y < 0) {
+        profit = 0;
+    } else if (a > b) {
+        if (y !== 0) {
+            profit = (x + a - y - b) * 100 / y;
+        }
+        else {
+            profit = (x + a - b) * 100;
+    }
+    } else {
+        if ((y + b - a) !== 0) {
+            profit = (x + a - y - b) * 100 / (y + b - a);
+        }
+        else {
+            profit = x * 100;
+        }
+    }
+    return profit;
+}
+
+export const calcProfitRelativeChange = function(_includeFees: boolean, _transactions: any, _assets: any) : any {
+    prepareData(_transactions, _assets);
+    let result = [];
+    result.push(getProfitForTxPeriod(10, 0, _includeFees));
+    result.push(getProfitForTxPeriod(25, 0, _includeFees));
+    result.push(getProfitForTxPeriod(50, 0, _includeFees));
+    result.push(getProfitForTxPeriod(100, 0, _includeFees));
+    return result;
+}

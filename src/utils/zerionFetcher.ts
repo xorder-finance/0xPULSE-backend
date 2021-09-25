@@ -1,5 +1,5 @@
 import { client } from "defi-sdk";
-import { calcProfitForPeriodInTx } from "./additionalFunctions";
+import { calcProfitForPeriodInTx, calcProfitRelativeChange } from "./additionalFunctions";
 
 // export const endpoint = "wss://api-staging.zerion.io";
 // export const API_TOKEN = "Zerion.0JOY6zZTTw6yl5Cvz9sdmXc7d5AhzVMG";
@@ -86,6 +86,15 @@ export const getProfitsInfo = async (address: string, txStartOffset: number, txE
 	//let profit = caclProfitForPeriod(0, 1700000000, false, data2, data);
 	let profit: number = calcProfitForPeriodInTx(txStartOffset, txEndOffset, false, userTx, userAssets);
 	return profit;
+}
+
+export const getProfitsSlice = async (address: string) => {
+
+	let userAssets = await getAssetsOfUser(address);
+	let userTx = await getLastTransactions(address);
+
+	let profitSlice = calcProfitRelativeChange(false, userTx, userAssets);
+	return profitSlice;
 }
 
 // (async () => {
