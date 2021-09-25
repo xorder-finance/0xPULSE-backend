@@ -65,16 +65,18 @@ function prepareData(data: any, assets: any): Array<Snap> {
         timestamp: 0
     };
     let snaps: Array<Snap> = [];
-
     for (let key in assets.payload.assets) {
         let asset = assets.payload.assets[key];
+        if (!asset.asset.price) {
+            continue;
+        }
         let symbol = asset.asset.symbol;
         let price = asset.asset.price.value;
         snap.timestamp = Math.round(Date.now() / 1000);
         snap.balance[symbol] = {
-        price: price, 
-        amount: asset.quantity / (10 ** asset.asset.decimals), 
-        decimals: asset.asset.decimals
+            price: price, 
+            amount: asset.quantity / (10 ** asset.asset.decimals), 
+            decimals: asset.asset.decimals
         };
     }
 

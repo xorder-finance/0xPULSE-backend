@@ -18,8 +18,18 @@ export const getAssets = async (req: Request, res: Response, next: NextFunction)
 
 export const getProfit = async (req: Request, res: Response, next: NextFunction) => {
 	let address: string = req.params.address;
-	let txStartOffset: number = req.query.txStartOffset;
-	let txEndOffset: number = req.query.txEndOffset;
+	let txStartOffset: number;
+	let txEndOffset;
+	if (!req.query.txStartOffset || req.query.txStartOffset == "") {
+		txStartOffset = -1;
+	} else {
+		txStartOffset = Number.parseInt(req.query.txStartOffset!.toString());
+	}
+	if (!req.query.txEndOffset || req.query.txStartOffset == "") {
+		txEndOffset = 0;
+	} else {
+		txEndOffset = Number.parseInt(req.query.txEndOffset!.toString());
+	}
 
 	let data = await getProfitsInfo(address, txStartOffset, txEndOffset);
 	return res.json(data)
