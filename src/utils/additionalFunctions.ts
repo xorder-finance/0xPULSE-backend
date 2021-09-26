@@ -307,9 +307,21 @@ function getProfitForTxPeriod(_txStartOffset: number, _txEndOffset: number, _inc
 export const calcProfitRelativeChange = function(_includeFees: boolean, _transactions: any, _assets: any) : any {
     prepareData(_transactions, _assets);
     let result = [];
-    result.push(getProfitForTxPeriod(10, 0, _includeFees));
-    result.push(getProfitForTxPeriod(25, 0, _includeFees));
-    result.push(getProfitForTxPeriod(50, 0, _includeFees));
-    result.push(getProfitForTxPeriod(100, 0, _includeFees));
+    for (let i: number = 5; i <= 100; i++) {
+        result.push(getProfitForTxPeriod(i, 0, _includeFees));  
+    }
+    //result.push(getProfitForTxPeriod(10, 0, _includeFees));
+    //result.push(getProfitForTxPeriod(25, 0, _includeFees));
+    //result.push(getProfitForTxPeriod(50, 0, _includeFees));
+    //result.push(getProfitForTxPeriod(100, 0, _includeFees));
+    return result;
+}
+
+export const calcProfitRelativeChangeV2 = function(_includeFees: boolean, _transactions: any, _assets: any) : any {
+    prepareData(_transactions, _assets);
+    let result = [];
+    for (let i: number = 5; i <= 100; i++) {
+        result.push(getProfitForTxPeriod(i, i - 5, _includeFees));  
+    }
     return result;
 }

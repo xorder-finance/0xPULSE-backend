@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 
-import {getAssetsOfUser, getChartsInfo, getProfitsInfo, getProfitsSlice} from '../../utils/zerionFetcher';
+import {getAssetsOfUser, getChartsInfo, getProfitsInfo, getProfitsSlice, getProfitsSliceV2} from '../../utils/zerionFetcher';
 
 export const getChart = async (req: Request, res: Response, next: NextFunction) => {
 	let address: string = req.params.address;
@@ -38,5 +38,11 @@ export const getProfit = async (req: Request, res: Response, next: NextFunction)
 export const getProfitSlice = async (req: Request, res: Response, next: NextFunction) => {
 	let address: string = req.params.address;
 	let data = await getProfitsSlice(address);
+	return res.json(data)
+};
+
+export const getProfitSliceV2 = async (req: Request, res: Response, next: NextFunction) => {
+	let address: string = req.params.address;
+	let data = await getProfitsSliceV2(address);
 	return res.json(data)
 };
