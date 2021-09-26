@@ -13,6 +13,7 @@ export const getAssetsOfUser = (address: string) => {
 	return new Promise((resolve, reject) => {
 		let unsubscribe = client.subscribe({
 			namespace: "address",
+			method: "get",
 			body: {
 				scope: ["assets"],
 				payload: {
@@ -33,6 +34,7 @@ export const getLastTransactions = (address: string, transactions_limit: number 
 	return new Promise((resolve, reject) => {
 		let unsubscribe = client.subscribe({
 			namespace: "address",
+			method: "get",
 			body: {
 				scope: ["transactions"],
 				payload: {
