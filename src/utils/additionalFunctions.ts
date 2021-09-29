@@ -44,8 +44,6 @@ function getChanges(tx: any): Array<[string, Token]> {
     return prices;
 }
 
-let Snaps: Array<Snap>;
-
 function prepareData(data: any, assets: any): Array<Snap> {
     let snap: Snap = {
         send: 0,
@@ -101,7 +99,6 @@ function prepareData(data: any, assets: any): Array<Snap> {
         snap.timestamp = tx.mined_at;
         snaps.push(cloneSnap(snap));
     }
-    Snaps = snaps;
     return snaps;
 }
 
@@ -120,10 +117,10 @@ function getSnapByTimestamp(snaps: Array<Snap>, timestamp: number): Snap {
     return snaps[i_min];
 }
 
-function getPortfolioBalance(_blockTime: number): number {
+function getPortfolioBalance(snaps: Array<Snap>, _blockTime: number): number {
     // Returns portfolio balance in USD at current _blockTime
     let balance: number = 0;
-    let snap: Snap = getSnapByTimestamp(Snaps, _blockTime);
+    let snap: Snap = getSnapByTimestamp(snaps, _blockTime);
     let token: string;
     for(token in snap.balance) {
         balance += snap.balance[token].amount * snap.balance[token].price;
@@ -131,10 +128,10 @@ function getPortfolioBalance(_blockTime: number): number {
     return balance;
 }
 
-function getPortfolioBalanceForTx(_txOffset: number): number {
+function getPortfolioBalanceForTx(snaps: Array<Snap>, _txOffset: number): number {
     // Returns portfolio balance in USD at specific txOffset
     let balance: number = 0;
-    let snap: Snap = Snaps[_txOffset];
+    let snap: Snap = snaps[_txOffset];
     let token: string;
     for(token in snap.balance) {
         balance += snap.balance[token].amount * snap.balance[token].price;
@@ -142,74 +139,74 @@ function getPortfolioBalanceForTx(_txOffset: number): number {
     return balance;
 }
 
-function getReceivedAssets(_blockTime: number): number {
+function getReceivedAssets(snaps: Array<Snap>, _blockTime: number): number {
     // Returns accumulated assets amount in USD which was received by account
-    let snap: Snap = getSnapByTimestamp(Snaps, _blockTime);
+    let snap: Snap = getSnapByTimestamp(snaps, _blockTime);
     return snap.receive;
 }
 
-function getReceivedAssetsByTx(_txOffset: number): number {
+function getReceivedAssetsByTx(snaps: Array<Snap>, _txOffset: number): number {
     // Returns accumulated assets amount in USD which was received by account
-    let snap: Snap = Snaps[_txOffset];
+    let snap: Snap = snaps[_txOffset];
     return snap.receive;
 }
 
-function getSentAssets(_blockTime: number, _includeFees: boolean): number {
+function getSentAssets(snaps: Array<Snap>, _blockTime: number, _includeFees: boolean): number {
     // Returns accumulated assets amount in USD which was sended from account 
-    let snap: Snap = getSnapByTimestamp(Snaps, _blockTime);
+    let snap: Snap = getSnapByTimestamp(snaps, _blockTime);
     return snap.send + (_includeFees ? snap.fee : 0);
 }
 
-function getSentAssetsByTx(_txOffset: number, _includeFees: boolean): number {
+function getSentAssetsByTx(snaps: Array<Snap>, _txOffset: number, _includeFees: boolean): number {
     // Returns accumulated assets amount in USD which was sended from account 
-    let snap: Snap = Snaps[_txOffset];
+    let snap: Snap = snaps[_txOffset];
     return snap.send + (_includeFees ? snap.fee : 0);
 }
 
-function getAssetsPriceForTime(_blockTime: number) : number {
-    return getPortfolioBalance(_blockTime);
+function getAssetsPriceForTime(snaps: Array<Snap>, _blockTime: number) : number {
+    return getPortfolioBalance(snaps, _blockTime);
 }
 
-function getAssetsPriceForTx(_txOffset: number) : number {
-    return getPortfolioBalanceForTx(_txOffset);
+function getAssetsPriceForTx(snaps: Array<Snap>, _txOffset: number) : number {
+    return getPortfolioBalanceForTx(snaps, _txOffset);
 }
 
-function getAssetsInput(_periodStart: number, _periodEnd: number) : number {
-    let assetsAtStart: number = getReceivedAssets(_periodStart);
-    let assetsAtEnd: number = getReceivedAssets(_periodEnd);
+function getAssetsInput(snaps: Array<Snap>, _periodStart: number, _periodEnd: number) : number {
+    let assetsAtStart: number = getReceivedAssets(snaps, _periodStart);
+    let assetsAtEnd: number = getReceivedAssets(snaps, _periodEnd);
     return assetsAtStart - assetsAtEnd;
 }
 
-function getAssetsInputForTx(_txStartOffset: number, _txEndOffset: number) : number {
-    let assetsAtStart: number = getReceivedAssetsByTx(_txStartOffset);
-    let assetsAtEnd: number = getReceivedAssetsByTx(_txEndOffset);
+function getAssetsInputForTx(snaps: Array<Snap>, _txStartOffset: number, _txEndOffset: number) : number {
+    let assetsAtStart: number = getReceivedAssetsByTx(snaps, _txStartOffset);
+    let assetsAtEnd: number = getReceivedAssetsByTx(snaps, _txEndOffset);
     return assetsAtStart - assetsAtEnd;
 }
 
-function getAssetsOutput(_periodStart: number, _periodEnd: number, _includeFees: boolean) : number {
-    let assetsAtStart: number = getSentAssets(_periodStart, _includeFees);
-    let assetsAtEnd: number = getSentAssets(_periodEnd, _includeFees);
+function getAssetsOutput(snaps: Array<Snap>, _periodStart: number, _periodEnd: number, _includeFees: boolean) : number {
+    let assetsAtStart: number = getSentAssets(snaps, _periodStart, _includeFees);
+    let assetsAtEnd: number = getSentAssets(snaps, _periodEnd, _includeFees);
     return assetsAtStart - assetsAtEnd;
 }
 
-function getAssetsOutputForTx(_txStartOffset: number, _txEndOffset: number, _includeFees: boolean) : number {
-    let assetsAtStart: number = getSentAssetsByTx(_txStartOffset, _includeFees);
-    let assetsAtEnd: number = getSentAssetsByTx(_txEndOffset, _includeFees);
+function getAssetsOutputForTx(snaps: Array<Snap>, _txStartOffset: number, _txEndOffset: number, _includeFees: boolean) : number {
+    let assetsAtStart: number = getSentAssetsByTx(snaps, _txStartOffset, _includeFees);
+    let assetsAtEnd: number = getSentAssetsByTx(snaps, _txEndOffset, _includeFees);
     return assetsAtStart - assetsAtEnd;
 }
 
 export const calcProfitForPeriod = function(_periodStart: number, _periodEnd: number, _includeFees: boolean, _transactions: any, _assets: any) : number {
     // Using equation from https://help.tinkoff.ru/pulse/profile/yield/#:~:text=%D0%A4%D0%BE%D1%80%D0%BC%D1%83%D0%BB%D0%B0%20%D1%80%D0%B0%D1%81%D1%87%D0%B5%D1%82%D0%B0%20%D0%B4%D0%BE%D1%85%D0%BE%D0%B4%D0%BD%D0%BE%D1%81%D1%82%D0%B8%20%D0%B2%20%D0%9F%D1%83%D0%BB%D1%8C%D1%81%D0%B5,%D0%94%D0%BE%D1%85%D0%BE%D0%B4%D0%BD%D0%BE%D1%81%D1%82%D1%8C%20%D0%B7%D0%B0%20%D0%BF%D0%B5%D1%80%D0%B8%D0%BE%D0%B4%20%D0%B2%20%D0%BF%D1%80%D0%BE%D1%86%D0%B5%D0%BD%D1%82%D0%B0%D1%85.&text=%D0%92%D0%B0%D0%B6%D0%BD%D0%BE%3A,b
-    prepareData(_transactions, _assets);
+    let snaps: Array<Snap> = prepareData(_transactions, _assets);
 
-    let x: number = getAssetsPriceForTime(_periodEnd);
+    let x: number = getAssetsPriceForTime(snaps, _periodEnd);
     console.log("X: " + x);
-    let y: number = getAssetsPriceForTime(_periodStart);
+    let y: number = getAssetsPriceForTime(snaps, _periodStart);
     if (y < 0) y = 0;
     console.log("Y: " + y);
-    let a: number = getAssetsOutput(_periodStart, _periodEnd, _includeFees);
+    let a: number = getAssetsOutput(snaps, _periodStart, _periodEnd, _includeFees);
     console.log("A: " + a);
-    let b: number = getAssetsInput(_periodStart, _periodEnd);
+    let b: number = getAssetsInput(snaps, _periodStart, _periodEnd);
     console.log("B: " + b);
     let profit: number = 0;
 
@@ -235,20 +232,20 @@ export const calcProfitForPeriod = function(_periodStart: number, _periodEnd: nu
 
 export const calcProfitForPeriodInTx = function(_txStartOffset: number, _txEndOffset: number, _includeFees: boolean, _transactions: any, _assets: any) : number {
     // Using equation from https://help.tinkoff.ru/pulse/profile/yield/#:~:text=%D0%A4%D0%BE%D1%80%D0%BC%D1%83%D0%BB%D0%B0%20%D1%80%D0%B0%D1%81%D1%87%D0%B5%D1%82%D0%B0%20%D0%B4%D0%BE%D1%85%D0%BE%D0%B4%D0%BD%D0%BE%D1%81%D1%82%D0%B8%20%D0%B2%20%D0%9F%D1%83%D0%BB%D1%8C%D1%81%D0%B5,%D0%94%D0%BE%D1%85%D0%BE%D0%B4%D0%BD%D0%BE%D1%81%D1%82%D1%8C%20%D0%B7%D0%B0%20%D0%BF%D0%B5%D1%80%D0%B8%D0%BE%D0%B4%20%D0%B2%20%D0%BF%D1%80%D0%BE%D1%86%D0%B5%D0%BD%D1%82%D0%B0%D1%85.&text=%D0%92%D0%B0%D0%B6%D0%BD%D0%BE%3A,b
-    prepareData(_transactions, _assets);
+    let snaps: Array<Snap> = prepareData(_transactions, _assets);
 
-    if ((_txStartOffset > Snaps.length - 1) || (_txStartOffset === -1)) {
-        _txStartOffset = Snaps.length - 1;
+    if ((_txStartOffset > snaps.length - 1) || (_txStartOffset === -1)) {
+        _txStartOffset = snaps.length - 1;
     }
 
-    let x: number = getAssetsPriceForTx(_txEndOffset);
+    let x: number = getAssetsPriceForTx(snaps, _txEndOffset);
     //console.log("X: " + x);
-    let y: number = getAssetsPriceForTx(_txStartOffset);
+    let y: number = getAssetsPriceForTx(snaps, _txStartOffset);
     if (y < 0) y = 0;
     //console.log("Y: " + y);
-    let a: number = getAssetsOutputForTx(_txStartOffset, _txEndOffset, _includeFees);
+    let a: number = getAssetsOutputForTx(snaps, _txStartOffset, _txEndOffset, _includeFees);
     //console.log("A: " + a);
-    let b: number = getAssetsInputForTx(_txStartOffset, _txEndOffset);
+    let b: number = getAssetsInputForTx(snaps, _txStartOffset, _txEndOffset);
     //console.log("B: " + b);
     let profit: number = 0;
 
@@ -272,16 +269,16 @@ export const calcProfitForPeriodInTx = function(_txStartOffset: number, _txEndOf
     return profit;
 }
 
-function getProfitForTxPeriod(_txStartOffset: number, _txEndOffset: number, _includeFees: boolean) : any {
-    if (_txStartOffset > Snaps.length - 1) {
+function getProfitForTxPeriod(snaps: Array<Snap>, _txStartOffset: number, _txEndOffset: number, _includeFees: boolean) : any {
+    if (_txStartOffset > snaps.length - 1) {
         return "Not enough data";
     }
 
-    let x: number = getAssetsPriceForTx(_txEndOffset);
-    let y: number = getAssetsPriceForTx(_txStartOffset);
+    let x: number = getAssetsPriceForTx(snaps, _txEndOffset);
+    let y: number = getAssetsPriceForTx(snaps, _txStartOffset);
     if (y < 0) y = 0;
-    let a: number = getAssetsOutputForTx(_txStartOffset, _txEndOffset, _includeFees);
-    let b: number = getAssetsInputForTx(_txStartOffset, _txEndOffset);
+    let a: number = getAssetsOutputForTx(snaps, _txStartOffset, _txEndOffset, _includeFees);
+    let b: number = getAssetsInputForTx(snaps, _txStartOffset, _txEndOffset);
     let profit: number = 0;
 
     if (x < 0 || y < 0) {
@@ -305,10 +302,9 @@ function getProfitForTxPeriod(_txStartOffset: number, _txEndOffset: number, _inc
 }
 
 export const calcProfitRelativeChange = function(_includeFees: boolean, _transactions: any, _assets: any) : any {
-    prepareData(_transactions, _assets);
-    let result = [];
+    let snaps: Array<Snap> = prepareData(_transactions, _assets);    let result = [];
     for (let i: number = 5; i <= 100; i += 5) {
-        result.push(getProfitForTxPeriod(i, 0, _includeFees));  
+        result.push(getProfitForTxPeriod(snaps, i, 0, _includeFees));  
     }
     //result.push(getProfitForTxPeriod(10, 0, _includeFees));
     //result.push(getProfitForTxPeriod(25, 0, _includeFees));
@@ -318,19 +314,19 @@ export const calcProfitRelativeChange = function(_includeFees: boolean, _transac
 }
 
 export const calcProfitRelativeChangeV2 = function(_includeFees: boolean, _transactions: any, _assets: any) : any {
-    prepareData(_transactions, _assets);
+    let snaps: Array<Snap> = prepareData(_transactions, _assets);
     let result = [];
     for (let i: number = 5; i <= 100; i += 5) {
-        result.push(getProfitForTxPeriod(i, i - 5, _includeFees));  
+        result.push(getProfitForTxPeriod(snaps, i, i - 5, _includeFees));  
     }
     return result;
 }
 
 export const calcProfitRelativeChangeStep = function(_step: number, _includeFees: boolean, _transactions: any, _assets: any) : any {
-    prepareData(_transactions, _assets);
+    let snaps: Array<Snap> = prepareData(_transactions, _assets);
     let result = [];
     for (let i: number = _step; i <= 100; i += _step) {
-        result.push(getProfitForTxPeriod(i, i - _step, _includeFees));  
+        result.push(getProfitForTxPeriod(snaps, i, i - _step, _includeFees));  
     }
     return result;
 }

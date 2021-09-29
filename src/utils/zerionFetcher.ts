@@ -6,6 +6,7 @@ import { calcProfitForPeriodInTx, calcProfitRelativeChange, calcProfitRelativeCh
 
 export const endpoint = "wss://api-v4.zerion.io";
 export const API_TOKEN = "Zerion.oSQAHALTonDN9HYZiYSX5k6vnm4GZNcM";
+export const TRANSACTIONS_LIMIT = 100;
 
 client.configure({ url: endpoint, apiToken: API_TOKEN });
 
@@ -30,7 +31,7 @@ export const getAssetsOfUser = (address: string) => {
 	});
 }
 
-export const getLastTransactions = (address: string, transactions_limit: number = 100) => {
+export const getLastTransactions = (address: string, transactions_limit: number = TRANSACTIONS_LIMIT, transactions_offset: number = 0): Promise<Array<any>> => {
 	return new Promise((resolve, reject) => {
 		let unsubscribe = client.subscribe({
 			namespace: "address",
@@ -40,7 +41,8 @@ export const getLastTransactions = (address: string, transactions_limit: number 
 				payload: {
 					address: address,
 					currency: "usd",
-					transactions_limit: transactions_limit
+					transactions_limit,
+					transactions_offset,
 				}
 			},
 
@@ -52,6 +54,22 @@ export const getLastTransactions = (address: string, transactions_limit: number 
 			}
 		});
 	});
+}
+
+export const getTransactions = async (address: string, allTxs: boolean): Promise<Array<any>> => {
+	let userTx = await getLastTransactions(address);
+	if (!allTxs) {
+		return userTx;
+	}
+
+	let userTxs: Array<any> = userTx;
+	let offset = TRANSACTIONS_LIMIT;
+	while (userTx.length == TRANSACTIONS_LIMIT) {
+		userTx = await getLastTransactions(address, TRANSACTIONS_LIMIT, offset);
+		userTxs.push.apply(userTxs, userTx);
+		offset += TRANSACTIONS_LIMIT;
+	}
+	return userTxs;
 }
 
 export const getChartsInfo = (address: string) => {
@@ -80,38 +98,37 @@ export const getChartsInfo = (address: string) => {
 	});
 }
 
-export const getProfitsInfo = async (address: string, txStartOffset: number, txEndOffset: number) => {
+export const getProfitsInfo = async (address: string, txStartOffset: number, txEndOffset: number, allTxs: boolean) => {
 
 	let userAssets = await getAssetsOfUser(address);
-	let userTx = await getLastTransactions(address);
-
+	let userTx = await getTransactions(address, allTxs);
 	//let profit = caclProfitForPeriod(0, 1700000000, false, data2, data);
 	let profit: number = calcProfitForPeriodInTx(txStartOffset, txEndOffset, false, userTx, userAssets);
 	return profit;
 }
 
-export const getProfitsSlice = async (address: string) => {
+export const getProfitsSlice = async (address: string, allTxs: boolean) => {
 
 	let userAssets = await getAssetsOfUser(address);
-	let userTx = await getLastTransactions(address);
+	let userTx = await getTransactions(address, allTxs);
 
 	let profitSlice = calcProfitRelativeChange(false, userTx, userAssets);
 	return profitSlice;
 }
 
-export const getProfitsSliceV2 = async (address: string) => {
+export const getProfitsSliceV2 = async (address: string, allTxs: boolean) => {
 
 	let userAssets = await getAssetsOfUser(address);
-	let userTx = await getLastTransactions(address);
+	let userTx = await getTransactions(address, allTxs);
 
 	let profitSlice = calcProfitRelativeChangeV2(false, userTx, userAssets);
 	return profitSlice;
 }
 
-export const getProfitsSliceStep = async (address: string, step: number) => {
+export const getProfitsSliceStep = async (address: string, step: number, allTxs: boolean) => {
 
 	let userAssets = await getAssetsOfUser(address);
-	let userTx = await getLastTransactions(address);
+	let userTx = await getTransactions(address, allTxs);
 
 	let profitSlice = calcProfitRelativeChangeStep(step, false, userTx, userAssets);
 	return profitSlice;
